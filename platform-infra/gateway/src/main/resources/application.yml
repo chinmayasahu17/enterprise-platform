@@ -1,0 +1,111 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  server:
+    port: ${MANAGEMENT_PORT:8081}
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+spring:
+  application:
+    name: gateway
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+
+  cloud:
+    gateway:
+      httpclient:
+        connect-timeout: 3000
+        response-timeout: 5s
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin
+      routes:
+        - id: ingestion-service
+          uri: ${INGESTION_SERVICE_URL:http://localhost:8180}
+          predicates:
+            - Path=/api/ingestion/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                key-resolver: "#{@remoteAddrKeyResolver}"
+
+        - id: processing-service
+          uri: ${PROCESSING_SERVICE_URL:http://localhost:8181}
+          predicates:
+            - Path=/api/processing/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                key-resolver: "#{@remoteAddrKeyResolver}"
+
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8182}
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                key-resolver: "#{@remoteAddrKeyResolver}"
+
+        - id: report-service
+          uri: ${REPORT_SERVICE_URL:http://localhost:8183}
+          predicates:
+            - Path=/api/reports/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@remoteAddrKeyResolver}"
+
+        - id: analytics-sqlclient
+          uri: ${ANALYTICS_SQLCLIENT_URL:http://localhost:8184}
+          predicates:
+            - Path=/api/analytics/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@remoteAddrKeyResolver}"
+
+platform:
+  security:
+    jwt-secret: ${JWT_SECRET:dev-only-secret-change-me-please-32chars}
+    jwt-ttl-seconds: ${JWT_TTL_SECONDS:3600}
+    # Paths that do not require a valid JWT. Actuator is always open for K8s probes.
+    public-paths:
+      - /actuator
+      - /api/auth/token
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    com.platform.gateway: INFO

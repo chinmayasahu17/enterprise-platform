@@ -1,0 +1,17 @@
+# Maven
+target/
+
+# IntelliJ
+.idea/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Environment
+.env
