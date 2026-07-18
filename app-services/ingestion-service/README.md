@@ -16,7 +16,7 @@ analytics services consume that event when they are added later.
 Example request:
 
 ```bash
-curl -X POST localhost:8080/api/ingestion/records \
+curl -X POST localhost:8180/api/ingestion/records \
   -H 'Content-Type: application/json' \
   -d '{"source":"example-client","payload":"raw-data"}'
 ```

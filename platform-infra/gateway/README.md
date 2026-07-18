@@ -6,69 +6,120 @@ analytics-sqlclient, validates JWTs on every non-public route, and rate-limits
 per client IP using Redis. No business logic lives here.
 
 ## APIs
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| POST | `/api/auth/token` | none | **Dev-only.** Issues a JWT for testing protected routes. No credential check. |
-| ANY | `/api/ingestion/**` | Bearer JWT | Proxied to ingestion-service |
-| ANY | `/api/processing/**` | Bearer JWT | Proxied to processing-service |
-| ANY | `/api/notifications/**` | Bearer JWT | Proxied to notification-service |
-| ANY | `/api/reports/**` | Bearer JWT | Proxied to report-service |
-| ANY | `/api/analytics/**` | Bearer JWT | Proxied to analytics-sqlclient |
-| GET | `/actuator/health` | none | Liveness/readiness, see below |
-| GET | `/actuator/prometheus` | none | Metrics scrape endpoint |
+
+| Method | Path                    | Auth       | Description                                                                   |
+| ------ | ----------------------- | ---------- | ----------------------------------------------------------------------------- |
+| POST   | `/api/auth/token`       | none       | **Dev-only.** Issues a JWT for testing protected routes. No credential check. |
+| ANY    | `/api/ingestion/**`     | Bearer JWT | Proxied to ingestion-service                           |
+| ANY    | `/api/processing/**`    | Bearer JWT | Proxied to processing-service                          |
+| ANY    | `/api/notifications/**` | Bearer JWT | Proxied to notification-service                        |
+| ANY    | `/api/reports/**`       | Bearer JWT | Proxied to report-service                              |
+| ANY    | `/api/analytics/**`     | Bearer JWT | Proxied to analytics-sqlclient                         |
+| GET    | `/actuator/health`      | none       | Liveness/readiness, see below                          |
+| GET    | `/actuator/prometheus`  | none       | Metrics scrape endpoint                                |
 
 ## Dependencies
+
 - Redis (rate limiter state)
 - Postgres: **none** — gateway holds no data of its own
-- All five routed services, for actual traffic (not required at startup)
+- All routed services, for actual traffic (not required at startup)
 
 ## Exposed ports
+
 - `8080` — application traffic
-- `8081` — actuator (health + prometheus), separate from app traffic by design
+- `8081` — actuator (health + prometheus)
 
 ## Required environment variables
-See `.env.example` for the full list and defaults. Notable ones:
-- `JWT_SECRET` — HMAC signing key, must match across restarts or existing tokens break
+
+See `.env.example` for the full list and defaults.
+
+Important variables:
+
+- `JWT_SECRET` — HMAC signing key.
 - `REDIS_HOST` / `REDIS_PORT`
-- `*_SERVICE_URL` — one per routed service; in Kubernetes set these to the ClusterIP Service DNS name
+- `INGESTION_SERVICE_URL`
+- `PROCESSING_SERVICE_URL`
+- `NOTIFICATION_SERVICE_URL`
+- `REPORT_SERVICE_URL`
+- `ANALYTICS_SQLCLIENT_URL`
+
+The service URLs are environment-specific:
+
+- **Local development:** `http://localhost:<port>`
+- **Docker Compose:** `http://<container-name>:8080`
+- **Kubernetes:** `http://<service-name>:8080`
 
 ## Startup dependencies
-Needs **Redis** reachable at boot (rate limiter fails closed otherwise).
-Does **not** need the downstream services to be up at startup — Spring Cloud
-Gateway routes lazily, so a 502/503 on a given route just means that
-particular backend isn't ready yet. Useful to know when you design your
-initContainers: only gate gateway's startup on Redis, not on every service.
 
-## Health & metrics
-- `GET /actuator/health` — includes liveness/readiness groups (`/actuator/health/liveness`, `/actuator/health/readiness`), useful for separate livenessProbe/readinessProbe config later
-- `GET /actuator/prometheus` — Prometheus text format on port 8081
+Gateway requires **Redis** to be reachable during startup because the
+`RequestRateLimiter` filter stores rate-limiting state in Redis.
 
-## Build & run locally
+Downstream services (Ingestion, Processing, Notification, etc.) are **not**
+required during startup. Routes are resolved lazily, so requests will fail only
+for services that are unavailable.
+
+## Health & Metrics
+
+- `GET /actuator/health`
+- `GET /actuator/health/liveness`
+- `GET /actuator/health/readiness`
+- `GET /actuator/prometheus`
+
+## Build & Run
+
+### Build
+
 ```bash
-# Build
 mvn clean package
+```
 
-# Run the jar directly
+### Run locally
+
+```bash
 JWT_SECRET=dev-secret REDIS_HOST=localhost java -jar target/gateway.jar
+```
 
-# Build the image
+### Build Docker image
+
+```bash
 docker build -t enterprise-platform-gateway:0.1.0 .
+```
 
-# Run the container (needs a Redis reachable at REDIS_HOST)
-docker run --rm -p 8080:8080 -p 8081:8081 \
+### Run Docker container
+
+```bash
+docker run --rm \
+  -p 8080:8080 \
+  -p 8081:8081 \
+  --network platform-network \
   --env-file .env \
   enterprise-platform-gateway:0.1.0
 ```
 
+> **Note:** When running inside Docker, configure the `*_SERVICE_URL`
+> environment variables to use Docker container names (for example,
+> `http://ingestion:8080`) instead of `localhost`.
+
 ## Image naming & versioning
-- Image: `<your-registry>/enterprise-platform-gateway:<version>`
-- This service versions independently — bump `<version>` in `pom.xml` and tag
-  `gateway/v0.1.0` when you cut a release, separate from other services' tags.
 
-## Quick end-to-end check once other services exist
+- Image: `<registry>/enterprise-platform-gateway:<version>`
+- Version independently from other services.
+
+## Quick end-to-end check
+
+Generate a JWT:
+
 ```bash
-TOKEN=$(curl -s -X POST localhost:8080/api/auth/token \
-  -H 'Content-Type: application/json' -d '{"subject":"me"}' | jq -r .token)
+TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/token \
+-H "Content-Type: application/json" \
+-d '{"subject":"me"}' | jq -r .token)
+```
 
-curl -H "Authorization: Bearer $TOKEN" localhost:8080/api/ingestion/health
+Call the Gateway:
+
+```bash
+curl -X POST http://localhost:8080/api/ingestion/records \
+-H "Authorization: Bearer $TOKEN" \
+-H "Content-Type: application/json" \
+-d '{"source":"gateway","payload":"Hello Gateway"}'
 ```
