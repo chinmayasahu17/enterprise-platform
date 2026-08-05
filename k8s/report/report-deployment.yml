@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: report-service
-          image: chinmaya1/enterprise-platform-report:1.0.1
+          image: chinmaya1/enterprise-platform-report:1.0.2
           imagePullPolicy: IfNotPresent
 
           ports:

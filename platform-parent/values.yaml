@@ -5,21 +5,21 @@ global:
 
 gateway:
   gatewayreplicas: "1"
-  gatewayimagetag: "1.0.0"
+  gatewayimagetag: "1.0.1"
 ingestion:
   ingestionreplicas: "1"
-  ingestionimagetag: "1.0.0"
+  ingestionimagetag: "1.0.1"
 notification:
   notificationreplicas: "1"
-  notificationimagetag: "1.0.0"
+  notificationimagetag: "1.0.1"
 processing:
   processingreplicas: "1"
-  processingimagetag: "1.0.0"
+  processingimagetag: "1.0.1"
 report:
   reportreplicas: "1"
-  reportimagetag: "1.0.1"
+  reportimagetag: "1.0.2"
 scheduler:
   schedulereplicas: "1"
-  schedulerimagetag: "1.0.0"
+  schedulerimagetag: "1.0.1"
 prometheus:
   prometheusreplicas: "1"

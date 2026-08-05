@@ -67,7 +67,7 @@ services:
       retries: 5
 
   ingestion-service:
-    image: enterprise-platform-ingestion:1.0.0
+    image: enterprise-platform-ingestion:1.0.1
 
     container_name: ingestion-service
     restart: unless-stopped
@@ -89,7 +89,7 @@ services:
       - platform-network
 
   processing-service:
-    image: enterprise-platform-processing:1.0.0
+    image: enterprise-platform-processing:1.0.1
 
     container_name: processing-service
     restart: unless-stopped
@@ -111,7 +111,7 @@ services:
       - platform-network
 
   notification-service:
-    image: enterprise-platform-notification:1.0.0
+    image: enterprise-platform-notification:1.0.1
     container_name: notification-service
     restart: unless-stopped
     ports:
@@ -129,7 +129,7 @@ services:
       - platform-network
 
   gateway:
-    image: enterprise-platform-gateway:1.0.0
+    image: enterprise-platform-gateway:1.0.1
     container_name: gateway
     restart: unless-stopped
 

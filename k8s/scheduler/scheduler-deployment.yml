@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: scheduler-service
-          image: chinmaya1/enterprise-platform-scheduler:1.0.0
+          image: chinmaya1/enterprise-platform-scheduler:1.0.1
           imagePullPolicy: IfNotPresent
 
           ports:

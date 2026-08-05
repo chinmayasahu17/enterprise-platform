@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: notification-service
-          image: chinmaya1/enterprise-platform-notification:1.0.0
+          image: chinmaya1/enterprise-platform-notification:1.0.1
           imagePullPolicy: IfNotPresent
 
           ports:

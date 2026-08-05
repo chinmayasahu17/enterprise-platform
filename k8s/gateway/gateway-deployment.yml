@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: platform-gateway
-          image: chinmaya1/enterprise-platform-gateway:1.0.0
+          image: chinmaya1/enterprise-platform-gateway:1.0.1
           imagePullPolicy: IfNotPresent
 
           ports:
