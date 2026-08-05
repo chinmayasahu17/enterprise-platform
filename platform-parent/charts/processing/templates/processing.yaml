@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: processing-deployment
+  labels:
+    app: processing
+spec:
+  replicas: {{ .Values.processingreplicas }}
+  selector:
+    matchLabels:
+      app: processing
+  template:
+    metadata:
+      labels:
+        app: processing
+    spec:
+      containers:
+        - name: processing-service
+          image: {{ .Values.global.imageregistry }}/enterprise-platform-processing:{{ .Values.processingimagetag }}
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 8080
+            - containerPort: 8081
+          env:
+            - name: DB_HOST
+              value: platform-postgres
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: platform
+            - name: DB_USER
+              value: platform
+            - name: DB_PASSWORD
+              value: platform
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: {{ .Values.global.kafkaBootstrapServers }}
+            - name: JAVA_OPTS
+              value: {{ .Values.global.javaOpts }}
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8081
+            periodSeconds: 10
+            failureThreshold: 24
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8081
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: processing-service
+
+spec:
+  selector:
+    app: processing
+
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+
+    - name: management
+      port: 8081
+      targetPort: 8081
+
+  type: ClusterIP

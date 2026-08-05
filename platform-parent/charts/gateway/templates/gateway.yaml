@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-deployment
+  labels:
+    app: gateway
+spec:
+  replicas: {{ .Values.gatewayreplicas }}
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: platform-gateway
+          image: {{ .Values.global.imageregistry }}/enterprise-platform-gateway:{{ .Values.gatewayimagetag }}
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 8080
+            - containerPort: 8081
+          env:
+            - name: REDIS_HOST
+              value: platform-redis
+            - name: REDIS_PORT
+              value: "6379"
+            - name: JAVA_OPTS
+              value: {{ .Values.global.javaOpts }}
+            - name: JWT_SECRET
+              value: change-me-to-a-random-32-byte-string
+            - name: JWT_TTL_SECONDS
+              value: "3600"
+            - name: INGESTION_SERVICE_URL
+              value: http://ingestion-service:8080
+            - name: PROCESSING_SERVICE_URL
+              value: http://processing-service:8080
+            - name: NOTIFICATION_SERVICE_URL
+              value: http://notification-service:8080
+            - name: REPORT_SERVICE_URL
+              value: http://report-service:8080
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8081
+            periodSeconds: 10
+            failureThreshold: 24
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+
+spec:
+  selector:
+    app: gateway
+
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+
+    - name: management
+      port: 8081
+      targetPort: 8081
+
+  type: NodePort

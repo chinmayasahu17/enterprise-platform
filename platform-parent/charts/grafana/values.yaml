@@ -1,0 +1,3 @@
+grafanaReplicas: 1
+adminUser: admin
+adminPassword: admin

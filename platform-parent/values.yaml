@@ -1,0 +1,25 @@
+global:
+  imageregistry: "chinmaya1"
+  kafkaBootstrapServers: "platform-kafka:9092"
+  javaOpts: "-Xms64m -Xmx192m -XX:+UseSerialGC -XX:MaxMetaspaceSize=96m"
+
+gateway:
+  gatewayreplicas: "1"
+  gatewayimagetag: "1.0.0"
+ingestion:
+  ingestionreplicas: "1"
+  ingestionimagetag: "1.0.0"
+notification:
+  notificationreplicas: "1"
+  notificationimagetag: "1.0.0"
+processing:
+  processingreplicas: "1"
+  processingimagetag: "1.0.0"
+report:
+  reportreplicas: "1"
+  reportimagetag: "1.0.1"
+scheduler:
+  schedulereplicas: "1"
+  schedulerimagetag: "1.0.0"
+prometheus:
+  prometheusreplicas: "1"

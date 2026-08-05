@@ -1,0 +1,7 @@
+package com.platform.analytics.processor.event;
+
+import java.time.Instant;
+import java.util.UUID;
+
+public record AnalyticsTriggerEvent(UUID id, String job, Instant triggeredAt) {
+}

@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: report-deployment
+  labels:
+    app: report
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: report
+  template:
+    metadata:
+      labels:
+        app: report
+    spec:
+      containers:
+        - name: report-service
+          image: chinmaya1/enterprise-platform-report:1.0.1
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 8080
+            - containerPort: 8081
+          env:
+            - name: DB_HOST
+              value: platform-postgres
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: platform
+            - name: DB_SCHEMA
+              value: report_schema
+            - name: DB_USER
+              value: platform
+            - name: DB_PASSWORD
+              value: platform
+            - name: REDIS_HOST
+              value: platform-redis
+            - name: REDIS_PORT
+              value: "6379"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: platform-kafka:9092
+            - name: REPORTS_OUTPUT_PATH
+              value: /data/reports
+            - name: REPORT_CACHE_TTL_SECONDS
+              value: "600"
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8081
+            periodSeconds: 10
+            failureThreshold: 24
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8081
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          volumeMounts:
+            - name: reports-volume
+              mountPath: /data/reports
+
+      volumes:
+        - name: reports-volume
+          persistentVolumeClaim:
+            claimName: reports-pvc
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: reports-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

@@ -37,13 +37,15 @@ spec:
               value: http://processing-service:8080
             - name: NOTIFICATION_SERVICE_URL
               value: http://notification-service:8080
+            - name: REPORT_SERVICE_URL
+              value: http://report-service:8080
           resources:
             requests:
               cpu: "100m"
-              memory: "128Mi"
+              memory: "256Mi"
             limits:
               cpu: "250m"
-              memory: "256Mi"
+              memory: "512Mi"
           startupProbe:
             httpGet:
               path: /actuator/health/liveness

@@ -1,0 +1,74 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  server:
+    port: ${MANAGEMENT_PORT:8081}
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+spring:
+  application:
+    name: report-service
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:platform}?currentSchema=${DB_SCHEMA:report_schema}
+    username: ${DB_USER:platform}
+    password: ${DB_PASSWORD:platform}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 2000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    schemas: ${DB_SCHEMA:report_schema}
+    default-schema: ${DB_SCHEMA:report_schema}
+    create-schemas: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: report-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.platform.report.event
+        spring.json.value.default.type: com.platform.report.event.ProcessingCompletedEvent
+
+platform:
+  reports:
+    output-path: ${REPORTS_OUTPUT_PATH:/data/reports}
+    cache-ttl-seconds: ${REPORT_CACHE_TTL_SECONDS:600}
+
+logging:
+  level:
+    com.platform.report: INFO
