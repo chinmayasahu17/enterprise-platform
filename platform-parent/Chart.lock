@@ -1,21 +1,12 @@
 dependencies:
-- name: redis
-  repository: file://charts/redis
-  version: 0.1.0
-- name: kafka
-  repository: file://charts/kafka
-  version: 0.1.0
-- name: postgress
-  repository: file://charts/postgress
-  version: 0.1.0
-- name: processing
-  repository: file://charts/processing
-  version: 0.1.0
 - name: gateway
   repository: file://charts/gateway
   version: 0.1.0
 - name: ingestion
   repository: file://charts/ingestion
+  version: 0.1.0
+- name: processing
+  repository: file://charts/processing
   version: 0.1.0
 - name: notification
   repository: file://charts/notification
@@ -26,5 +17,20 @@ dependencies:
 - name: report
   repository: file://charts/report
   version: 0.1.0
-digest: sha256:5a3fd220a966bfb6d190a0c1ef7f615d807cb7d1a3c2e573d8be74488606d2ac
-generated: "2026-08-01T11:54:59.303126+05:30"
+- name: kafka
+  repository: file://charts/kafka
+  version: 0.1.0
+- name: redis
+  repository: file://charts/redis
+  version: 0.1.0
+- name: postgres
+  repository: file://charts/postgres
+  version: 0.1.0
+- name: prometheus
+  repository: file://charts/prometheus
+  version: 0.1.0
+- name: grafana
+  repository: file://charts/grafana
+  version: 0.1.0
+digest: sha256:52573c76c59f733716adda29e6094d9b1d22a3619d60affd6b1c541a6685c733
+generated: "2026-08-06T03:21:36.923635792Z"

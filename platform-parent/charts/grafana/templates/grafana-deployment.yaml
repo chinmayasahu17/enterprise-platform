@@ -23,6 +23,10 @@ spec:
 
           ports:
             - containerPort: 3000
+            
+          volumeMounts:
+            - name: grafana-storage
+              mountPath: /var/lib/grafana
 
           env:
             - name: GF_SECURITY_ADMIN_USER
@@ -39,7 +43,10 @@ spec:
             limits:
               cpu: "250m"
               memory: "256Mi"
-          
+      volumes:
+        - name: grafana-storage
+          persistentVolumeClaim:
+            claimName: grafana-pvc    
 ---
 apiVersion: v1
 kind: Service
@@ -56,3 +63,17 @@ spec:
       targetPort: 3000
 
   type: NodePort
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-pvc
+
+spec:
+  accessModes:
+    - ReadWriteOnce
+
+  resources:
+    requests:
+      storage: 2Gi

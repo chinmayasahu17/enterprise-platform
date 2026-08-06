@@ -15,3 +15,6 @@ target/
 
 # Environment
 .env
+# Helm packages
+platform-parent/*.tgz
+platform-parent/charts/*.tgz

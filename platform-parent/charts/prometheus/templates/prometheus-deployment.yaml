@@ -20,6 +20,8 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus"
+            - "--storage.tsdb.retention.time=15d"
 
           ports:
             - containerPort: 9090
@@ -28,6 +30,8 @@ spec:
               mountPath: /etc/prometheus/prometheus.yml
               subPath: prometheus.yml
               readOnly: true
+            - name: prometheus-storage
+              mountPath: /prometheus
           resources:
             requests:
               cpu: 100m
@@ -59,6 +63,9 @@ spec:
         - name: prometheus-config-volume
           configMap:
             name: prometheus-config
+        - name: prometheus-storage
+          persistentVolumeClaim:
+            claimName: prometheus-pvc
 
 ---
 
@@ -76,3 +83,17 @@ spec:
       targetPort: 9090
 
   type: ClusterIP
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-pvc
+
+spec:
+  accessModes:
+    - ReadWriteOnce
+
+  resources:
+    requests:
+      storage: 10Gi

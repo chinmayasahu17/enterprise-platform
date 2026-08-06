@@ -2,6 +2,50 @@ apiVersion: v2
 name: platform-parent
 description: A Helm chart for Kubernetes
 type: application
-version: 0.2.0
+version: 2.0.0
 appVersion: "1.0.0"
 
+dependencies:
+  - name: gateway
+    version: "0.1.0"
+    repository: "file://charts/gateway"
+
+  - name: ingestion
+    version: "0.1.0"
+    repository: "file://charts/ingestion"
+
+  - name: processing
+    version: "0.1.0"
+    repository: "file://charts/processing"
+
+  - name: notification
+    version: "0.1.0"
+    repository: "file://charts/notification"
+
+  - name: scheduler
+    version: "0.1.0"
+    repository: "file://charts/scheduler"
+
+  - name: report
+    version: "0.1.0"
+    repository: "file://charts/report"
+
+  - name: kafka
+    version: "0.1.0"
+    repository: "file://charts/kafka"
+
+  - name: redis
+    version: "0.1.0"
+    repository: "file://charts/redis"
+
+  - name: postgres
+    version: "0.1.0"
+    repository: "file://charts/postgres"
+
+  - name: prometheus
+    version: "0.1.0"
+    repository: "file://charts/prometheus"
+
+  - name: grafana
+    version: "0.1.0"
+    repository: "file://charts/grafana"
